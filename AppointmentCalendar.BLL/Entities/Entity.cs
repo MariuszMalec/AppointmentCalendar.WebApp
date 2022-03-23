@@ -10,7 +10,7 @@ namespace AppointmentCalendar.BLL.Entities
 {
     public abstract class Entity
     {
-        //[Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         //[JsonIgnore]
         public int Id { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

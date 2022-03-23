@@ -1,10 +1,15 @@
-﻿using AppointmentCalendar.BLL.Interfaces;
+﻿using AppointmentCalendar.BLL;
+using AppointmentCalendar.BLL.Entities;
+using AppointmentCalendar.BLL.Interfaces;
 using AppointmentCalendar.BLL.Models;
 using AppointmentCalendar.BLL.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AppointmentCalendar.WebApp.Controllers
 {
@@ -12,27 +17,51 @@ namespace AppointmentCalendar.WebApp.Controllers
     {
         private readonly IPersonService _userService;
         private readonly IMapper _mapper;
+        private readonly UsersContext _userContext;
+        private readonly ILogger<HomeController> _logger;
 
-        public UserController(IPersonService userService, IMapper mapper)
+        public UserController(IPersonService userService, IMapper mapper, UsersContext userContext, ILogger<HomeController> logger)
         {
             _userService = userService;
             _mapper = mapper;
+            _userContext = userContext;
+            _logger = logger;
         }
 
         // GET: UserController
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var users = _userService.GetAll();
+            //var users = _userService.GetAll();
 
-            var models = users.Select(e => _mapper.Map<UserView>(e));
+            if (!_userContext.Users.Any())
+            {
+                _logger.LogInformation("Wprowadzam dane do bazy ...");
+                var players = _userService.GetAll();
+                foreach (var item in players)
+                {
+                    _userContext.Add(item);
+                }
+                _logger.LogInformation("zapis danych do bazy danych ...");
+                await _userContext.SaveChangesAsync();
+            }
 
-            return View(models);
+            var database = _userContext.Users;
+            var users = _mapper.Map<List<UserView>>(database);
+            return View(users);
         }
 
         // GET: UserController/Details/5
-        public ActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
-            return View();
+            var baseUser = await _userContext.Users.FindAsync(id);
+            var user = _mapper.Map<UserView>(baseUser);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+            _logger.LogInformation($"Wybrales gracza {user.FirstName} z bazy danych z mapowanego do widoku");
+            return View(user);
         }
 
         // GET: UserController/Create
@@ -44,53 +73,92 @@ namespace AppointmentCalendar.WebApp.Controllers
         // POST: UserController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Create(User user)
         {
-            try
+            if (ModelState.IsValid)
             {
+                _userContext.Add(user);
+                await _userContext.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return View();
-            }
+
+            var userView = _mapper.Map<UserView>(user);
+
+            return View(userView);
         }
 
         // GET: UserController/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var user = await _userContext.Users.FindAsync(id);
+            if (user == null)
+            {
+                _logger.LogError($"Brak w bazie danych gracza od Id {id}");
+                return NotFound();
+            }
+            return View(user);
         }
 
         // POST: UserController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, User user)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    _userContext.Update(user);
+                    _userContext.SaveChanges();
+                    _logger.LogInformation($"Uzytkownik {user.LastName} zostal zmodyfikowany");
+                    return RedirectToAction(nameof(Index));
+                }   
             }
             catch
             {
                 return View();
             }
+            return View();
         }
 
         // GET: UserController/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var user = _userContext.Users
+                .FirstOrDefault(m => m.Id == id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return View(user);
         }
 
         // POST: UserController1/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<IActionResult> Delete(int id, IFormCollection collection)
         {
             try
             {
+                var user = await _userContext.Users.FindAsync(id);
+                _userContext.Users.Remove(user);
+                _userContext.SaveChanges();
+
+                _logger.LogWarning("Get({Id}) you deleted uzytkownika from data base! ", user.LastName);
                 return RedirectToAction(nameof(Index));
+
             }
             catch
             {

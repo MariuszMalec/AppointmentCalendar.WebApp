@@ -1,8 +1,11 @@
+using AppointmentCalendar.BLL;
 using AppointmentCalendar.BLL.Interfaces;
 using AppointmentCalendar.BLL.Services;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,6 +30,9 @@ namespace AppointmentCalendar.WebApp
         {
             services.AddControllersWithViews();
 
+            var connectionString = Configuration.GetConnectionString("MyDatabase");
+            services.AddDbContext<UsersContext>(o => o.UseSqlServer(connectionString));//.UseLazyLoadingProxies()) ;
+
             services.AddTransient<IPersonService, UserService>();
 
             var profileAssembly = typeof(Startup).Assembly;
@@ -34,8 +40,12 @@ namespace AppointmentCalendar.WebApp
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IMapper mapper, UsersContext context)
         {
+            mapper.ConfigurationProvider.AssertConfigurationIsValid();//TODO validacja automappera
+
+            context?.Database.Migrate(); //jesli uzyje .usesqlserver wyzej
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
