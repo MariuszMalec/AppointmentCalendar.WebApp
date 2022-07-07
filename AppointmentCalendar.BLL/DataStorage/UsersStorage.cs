@@ -11,8 +11,8 @@ namespace AppointmentCalendar.BLL.DataStorage
     {
         public static List<User> Users = new List<User>
         {
-            new User {FirstName = "Bob", LastName = "Bobek" },
-            new User {FirstName = "Mario", LastName = "Bros" }
+            new User {FirstName = "Mariusz", LastName = "Bobek", Address="Sadowa", AddressCorrespondence="",Email="mb@example.com", PhoneMobile="501622578", PhoneNumber=null},
+            new User {FirstName = "Mario", LastName = "Bros" , Address="Brosowo", AddressCorrespondence="",Email="mbros@example.com", PhoneMobile=null, PhoneNumber="552391376"}
         };
     }
 }
