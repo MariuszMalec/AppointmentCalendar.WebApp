@@ -30,6 +30,8 @@ namespace AppointmentCalendar.WebApp
 
             services.AddTransient<IPersonService, UserService>();
 
+            services.AddTransient<IAppUserService ,AppUserService>();
+
             var profileAssembly = typeof(Startup).Assembly;
             services.AddAutoMapper(profileAssembly);
         }

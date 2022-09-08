@@ -2,7 +2,6 @@
 using AppointmentCalendar.BLL.Entities;
 using AppointmentCalendar.BLL.Interfaces;
 using AppointmentCalendar.BLL.Models;
-using AppointmentCalendar.BLL.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,14 +12,14 @@ using System.Threading.Tasks;
 
 namespace AppointmentCalendar.WebApp.Controllers
 {
-    public class UserController : Controller
+    public class UserWithContextController : Controller
     {
         private readonly IPersonService _userService;
         private readonly IMapper _mapper;
         private readonly UsersContext _userContext;
         private readonly ILogger<HomeController> _logger;
 
-        public UserController(IPersonService userService, IMapper mapper, UsersContext userContext, ILogger<HomeController> logger)
+        public UserWithContextController(IPersonService userService, IMapper mapper, UsersContext userContext, ILogger<HomeController> logger)
         {
             _userService = userService;
             _mapper = mapper;
