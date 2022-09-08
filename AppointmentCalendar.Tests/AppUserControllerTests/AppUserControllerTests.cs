@@ -10,27 +10,48 @@ namespace AppointmentCalendar.Tests.UserControllerTests
     public class AppUserControllerTests
     {
         [Fact]
-        public void Index_IsNotActionResult_ReturnError()
+        public async Task Index_IfViewResultModelNotCorrect_ReturnError()
+        {
+            var curentViewUsers = GetUsersView();
+            var mock = new Mock<IAppUserService>();
+            mock.Setup(u => u.GetAll())
+                .ReturnsAsync(curentViewUsers);
+
+            var controller = new AppUserController(mock.Object);
+
+            var result = await controller.Index() as ViewResult;
+
+            // Assert
+            Assert.Equal(curentViewUsers, result.Model);
+        }
+
+        [Fact]
+        public async Task Index_IfViewResultTypeNotCorrect_ReturnError()
         {
             var mock = new Mock<IAppUserService>();
             mock.Setup(u => u.GetAll())
-                .ReturnsAsync(new List<UserView>()
-                      {
+                .ReturnsAsync(GetUsersView());
+
+            var controller = new AppUserController(mock.Object);
+
+            var result = await controller.Index();
+
+            // Assert
+            Assert.IsType<ViewResult>(result);
+        }
+
+        private List<UserView> GetUsersView()
+        {
+            return new List<UserView>()
+            {
                         new UserView()
                         {
                             Id=1,
-                            FirstName="",
-                            LastName ="",
+                            FirstName="Mariusz",
+                            LastName ="Bros",
                             CreatedAt=DateTime.Now
                         }
-                      });
-            var controller = new AppUserController(mock.Object);
-
-            var result = controller.Index();
-
-            // Assert
-            Assert.IsType<Task<ActionResult<List<UserView>>>>(result);
-            result.Result.Should().NotBeNull();
+            };
         }
     }
 }

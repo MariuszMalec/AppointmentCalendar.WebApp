@@ -17,7 +17,7 @@ namespace AppointmentCalendar.WebApp.Controllers
         }
 
         // GET: UserController
-        public async Task<ActionResult<List<UserView>>> Index()
+        public async Task<IActionResult> Index()
         {
             var users = await _userService.GetAll();
 
